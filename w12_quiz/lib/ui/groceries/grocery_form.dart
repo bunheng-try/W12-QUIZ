@@ -42,11 +42,32 @@ class _NewItemState extends State<NewItem> {
   }
 
   void onReset() {
-    // Will be implemented later - Reset all fields to the initial values
+    setState(() {
+      _nameController.text = defautName;
+      _quantityController.text = defaultQuantity.toString();
+      _selectedCategory = defaultCategory;
+    });
   }
 
   void onAdd() {
-    // Will be implemented later - Create and return the new grocery
+    final name = _nameController.text.trim();
+    final quantity = int.tryParse(_quantityController.text) ?? 0;
+
+    if (name.isEmpty || quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid quantity')),
+      );
+      return;
+    }
+
+    final newGrocery = Grocery(
+      id: DateTime.now().toIso8601String(),
+      name: name,
+      quantity: quantity,
+      category: _selectedCategory,
+    );
+
+    Navigator.of(context).pop(newGrocery);
   }
 
   @override
@@ -69,14 +90,20 @@ class _NewItemState extends State<NewItem> {
                 Expanded(
                   child: TextField(
                     controller: _quantityController,
+                    keyboardType: TextInputType.number,
                     decoration: const InputDecoration(label: Text('Quantity')),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: DropdownButtonFormField<GroceryCategory>(
-                    initialValue: _selectedCategory,
-                    items: [  ],
+                    value: _selectedCategory,
+                    items: GroceryCategory.values
+                        .map((cat) => DropdownMenuItem(
+                              value: cat,
+                              child: Text(cat.label),
+                            ))
+                        .toList(),
                     onChanged: (value) {
                       if (value != null) {
                         setState(() {
@@ -84,6 +111,7 @@ class _NewItemState extends State<NewItem> {
                         });
                       }
                     },
+                    decoration: const InputDecoration(label: Text('Category')),
                   ),
                 ),
               ],
@@ -99,6 +127,7 @@ class _NewItemState extends State<NewItem> {
                 ),
               ],
             ),
+
           ],
         ),
       ),
